@@ -1,0 +1,30 @@
+{
+  "name": "gulp-fe-stack",
+  "version": "0.0.1",
+  "description": "Pure Gulp Based Front End Build System",
+  "main": "index.js",
+  "dependencies": {
+    "gulp-git": "^0.4.2"
+  },
+  "devDependencies": {
+    "gulp": "^3.6.2",
+    "gulp-autoprefixer": "0.0.7",
+    "gulp-cleanhtml": "0.0.2",
+    "gulp-coffee": "^1.4.3",
+    "gulp-concat": "^2.2.0",
+    "gulp-connect": "^2.0.5",
+    "gulp-eslint": "^0.1.7",
+    "gulp-imagemin": "^0.5.1",
+    "gulp-jade": "^0.5.0",
+    "gulp-livereload": "^1.5.0",
+    "gulp-newer": "^0.3.0",
+    "gulp-sass": "^0.7.1",
+    "gulp-uglify": "^0.3.0",
+    "gulp-util": "^2.2.15"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "@jeffscottward",
+  "license": "MIT"
+}
