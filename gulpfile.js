@@ -13,6 +13,8 @@ var gulpUglify =       require('gulp-uglify');
 var gulpUtil =         require('gulp-util');
 var gulpImagemin =     require('gulp-imagemin');
 var gulpConnect =      require('gulp-connect');
+var gulpWatch =        require('gulp-watch');
+var gulpPlumber =      require('gulp-plumber');
 
 // App path references
 var app = {};
@@ -22,10 +24,10 @@ var app = {};
     app.paths = {};
 
     app.paths.source = {
-      html: app.sourcePath, // HTML
-      css: app.sourcePath + 'scss/', // CSS
-      js: app.sourcePath + 'coffee/', // JS
-      img: app.sourcePath + 'img/' // IMG
+      html: app.sourcePath + '**/*.jade', // HTML
+      css: app.sourcePath + 'scss/**/*.**', // CSS
+      js: app.sourcePath + 'coffee/**/*.**', // JS
+      img: app.sourcePath + 'img/**/*.**' // IMG
     };
 
     app.paths.destination = {
@@ -39,66 +41,83 @@ var app = {};
 gulp.task('buildHTML', function() {
 
   return gulp.src(app.paths.source.html)
-      .pipe(gulpNewer(app.paths.source.html))
-      .pipe(gulpJade())
-      .pipe(gulp.dest(app.paths.destination.html))
-      .on('error', gulpUtil.log);
+    // .pipe(gulpNewer(app.paths.source.html))
+    .pipe(gulpWatch(function(files) {
+      return files.pipe(gulpJade())
+                  .pipe(gulp.dest(app.paths.destination.html))
+                  .pipe(gulpLivereload())
+                  .on('error', gulpUtil.log);
+    }));
 });
 
 // Build CSS files
 gulp.task('buildCSS', function() {
 
   return gulp.src(app.paths.source.css)
-      .pipe(gulpNewer(app.paths.source.css))
-      .pipe(gulpSass({outputStyle:'compressed',sourceComments:'map'}))
-      .pipe(gulp.dest(app.paths.destination.css))
-      .on('error', gulpUtil.log);
+    // .pipe(gulpNewer(app.paths.source.css))
+    .pipe(gulpWatch(function(files) {
+      return files.pipe(gulpSass({outputStyle:'compressed',sourceComments:'map'}))
+                  .pipe(gulp.dest(app.paths.destination.css))
+                  .pipe(gulpLivereload())
+                  .on('error', gulpUtil.log);
+    }));
 });
 
 // Build JS files
 gulp.task('buildJS', function() {
 
   return gulp.src(app.paths.source.js)
-      .pipe(gulpNewer(app.paths.source.js))
-      .pipe(gulpConcat('app.min.js'))
-      .pipe(gulpUglify())
-      .pipe(gulp.dest(app.paths.destination.js))
-      .on('error', gulpUtil.log);
+    // .pipe(gulpNewer(app.paths.source.js))
+    .pipe(gulpWatch(function(files) {
+      return files.pipe(gulpConcat('app.min.js'))
+                  .pipe(gulpUglify())
+                  .pipe(gulp.dest(app.paths.destination.js))
+                  .pipe(gulpLivereload())
+                  .on('error', gulpUtil.log);
+    }));
 });
 
 // Build IMG files
 gulp.task('buildIMG', function () {
 
   return gulp.src(app.paths.source.img)
-    .pipe(gulpNewer(app.paths.source.img))
-    .pipe(gulpImagemin())
-    .pipe(gulp.dest(app.paths.destination.img))
-    .on('error', gulpUtil.log);
+    // .pipe(gulpNewer(app.paths.source.img))
+    .pipe(gulpWatch(function(files) {
+      return files.pipe(gulpImagemin())
+                  .pipe(gulp.dest(app.paths.destination.img))
+                  .pipe(gulpLivereload())
+                  .on('error', gulpUtil.log);
+    }));
 });
 
 // Build tasks ( w/ alias for rebuild )
-gulp.task('build', function() {gulp.start('buildHTML', 'buildCSS', 'buildJS', 'buildIMG');});
-gulp.task('rebuild', function() {gulp.start('buildHTML', 'buildCSS', 'buildJS', 'buildIMG');});
+gulp.task('build', function() {
+  gulp.start('buildHTML', 'buildCSS', 'buildJS', 'buildIMG');
+});
+gulp.task('rebuild', function() {
+  gulp.start('buildHTML', 'buildCSS', 'buildJS', 'buildIMG');
+});
 
 // Start a node server
 gulp.task('server', function(next) {
 
-  gulpConnect.server({
-    root: app.destinationPath,
-    livereload: true
-  });
+  gulpConnect.server({root: app.destinationPath});
 });
 
 // Watch files
 gulp.task('watch', ['server'], function() {
 
-  var server = gulpLivereload();
+  // Watch for HTML CSS JS
+  gulpWatch({ glob: app.paths.source.html }, function(){
+    gulp.start('buildHTML');
+  });
+  gulpWatch({ glob: app.paths.source.css }, function(){
+    gulp.start('buildCSS');
+  });
+  gulpWatch({ glob: app.paths.source.js }, function(){
+    gulp.start('buildJS');
+  });
 
-  gulp.watch(app.sourcePath + '**/**')
-      .on('change', function(file) {
-        gulp.start('build');
-        server.changed(file.path);
-      });
 });
 
 // Default task - build first then watch files and start server
