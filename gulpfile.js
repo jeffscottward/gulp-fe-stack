@@ -45,6 +45,8 @@ gulp.task('buildHTML', function() {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpJade())
                   .pipe(gulp.dest(app.paths.destination.html))
+                  // .pipe(gulpGit.add())
+                  // .pipe(gulpGit.commit('HTML commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }));
@@ -58,6 +60,8 @@ gulp.task('buildCSS', function() {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpSass({outputStyle:'compressed',sourceComments:'map'}))
                   .pipe(gulp.dest(app.paths.destination.css))
+                  // .pipe(gulpGit.add())
+                  // .pipe(gulpGit.commit('CSS commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }));
@@ -72,6 +76,8 @@ gulp.task('buildJS', function() {
       return files.pipe(gulpConcat('app.min.js'))
                   .pipe(gulpUglify())
                   .pipe(gulp.dest(app.paths.destination.js))
+                  // .pipe(gulpGit.add())
+                  // .pipe(gulpGit.commit('JS commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }));
@@ -85,6 +91,8 @@ gulp.task('buildIMG', function () {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpImagemin())
                   .pipe(gulp.dest(app.paths.destination.img))
+                  // .pipe(gulpGit.add())
+                  // .pipe(gulpGit.commit('IMG commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }));
@@ -118,6 +126,12 @@ gulp.task('watch', ['server'], function() {
     gulp.start('buildJS');
   });
 
+});
+
+gulp.task('push', function(next) {
+
+  gulpGit.push('origin', 'master')
+     .end();  // .end() is required
 });
 
 // Default task - build first then watch files and start server
