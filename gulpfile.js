@@ -19,29 +19,29 @@ var gulpPlumber =      require('gulp-plumber');
 // App path references
 var app = {};
 
-    app.sourcePath = 'src/'; // Source
+    app.sourcePath = 'src/';       // Source
     app.destinationPath = 'dest/'; // Destination
     app.paths = {};
 
     app.paths.source = {
-      html: app.sourcePath + '**/*.jade', // HTML
+      html: app.sourcePath + '**/*.jade',   // HTML
       css: app.sourcePath + 'scss/**/*.**', // CSS
-      js: app.sourcePath + 'coffee/**/*.**', // JS
-      img: app.sourcePath + 'img/**/*.**' // IMG
+      js: app.sourcePath + 'coffee/**/*.**',// JS
+      img: app.sourcePath + 'img/**/*.**'   // IMG
     };
 
     app.paths.destination = {
-      html: app.destinationPath, // HTML
-      css: app.destinationPath + 'css/', // CSS
-      js: app.destinationPath + 'js/', // JS
-      img: app.destinationPath + 'img/' // IMG
+      html: app.destinationPath,          // HTML
+      css: app.destinationPath + 'css/',  // CSS
+      js: app.destinationPath + 'js/',    // JS
+      img: app.destinationPath + 'img/'   // IMG
     };
 
 // Build HTML files
 gulp.task('buildHTML', function() {
 
   return gulp.src(app.paths.source.html)
-    // .pipe(gulpNewer(app.paths.source.html))
+    .pipe(gulpNewer(app.paths.source.html))
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpJade())
                   .pipe(gulp.dest(app.paths.destination.html))
@@ -56,7 +56,7 @@ gulp.task('buildHTML', function() {
 gulp.task('buildCSS', function() {
 
   return gulp.src(app.paths.source.css)
-    // .pipe(gulpNewer(app.paths.source.css))
+    .pipe(gulpNewer(app.paths.source.css))
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpSass({outputStyle:'compressed',sourceComments:'map'}))
                   .pipe(gulp.dest(app.paths.destination.css))
@@ -71,7 +71,7 @@ gulp.task('buildCSS', function() {
 gulp.task('buildJS', function() {
 
   return gulp.src(app.paths.source.js)
-    // .pipe(gulpNewer(app.paths.source.js))
+    .pipe(gulpNewer(app.paths.source.js))
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpConcat('app.min.js'))
                   .pipe(gulpUglify())
@@ -87,7 +87,7 @@ gulp.task('buildJS', function() {
 gulp.task('buildIMG', function () {
 
   return gulp.src(app.paths.source.img)
-    // .pipe(gulpNewer(app.paths.source.img))
+    .pipe(gulpNewer(app.paths.source.img))
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpImagemin())
                   .pipe(gulp.dest(app.paths.destination.img))
@@ -108,8 +108,17 @@ gulp.task('rebuild', function() {
 
 // Start a node server
 gulp.task('server', function(next) {
-
   gulpConnect.server({root: app.destinationPath});
+});
+
+gulp.task('addAndCommit', function() {
+  gulpGit.add({args: '-a'});
+  gulpGit.commit('build at ' + new Date().toString() );
+});
+
+gulp.task('push', function(next) {
+  // gulpGit.push('origin', 'master')
+     // .end();  // .end() is required
 });
 
 // Watch files
@@ -126,12 +135,11 @@ gulp.task('watch', ['server'], function() {
     gulp.start('buildJS');
   });
 
-});
+  gulpWatch({ glob: app.sourcePath }, function(){
+    gulp.start('addAndCommit');
+  });
+  
 
-gulp.task('push', function(next) {
-
-  gulpGit.push('origin', 'master')
-     .end();  // .end() is required
 });
 
 // Default task - build first then watch files and start server
