@@ -45,6 +45,7 @@ gulp.task('buildHTML', function() {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpJade())
                   .pipe(gulp.dest(app.paths.destination.html))
+                  .pipe(gulpGit.add())
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }))
