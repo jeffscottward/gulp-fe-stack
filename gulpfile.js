@@ -45,11 +45,11 @@ gulp.task('buildHTML', function() {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpJade())
                   .pipe(gulp.dest(app.paths.destination.html))
-                  // .pipe(gulpGit.add())
-                  // .pipe(gulpGit.commit('HTML commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
-    }));
+    }))
+    .pipe(gulpGit.add())
+    .pipe(gulpGit.commit('HTML commit at ' + new Date().toString()));
 });
 
 // Build CSS files
@@ -112,8 +112,9 @@ gulp.task('server', function(next) {
 });
 
 gulp.task('addAndCommit', function() {
-  gulpGit.add({args: '-a'});
-  gulpGit.commit('build at ' + new Date().toString() );
+  return gulp.src(app.sourcePath)
+             .pipe(gulpGit.add({args: '-a'}))
+             .pipe(gulpGit.commit('build at ' + new Date().toString() ));
 });
 
 gulp.task('push', function(next) {
