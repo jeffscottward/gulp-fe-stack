@@ -16,7 +16,10 @@ var gulpConnect =      require('gulp-connect');
 var gulpWatch =        require('gulp-watch');
 var gulpPlumber =      require('gulp-plumber');
 
+////////////////////////
 // App path references
+////////////////////////
+
 var app = {};
 
     app.sourcePath = 'src/';       // Source
@@ -37,6 +40,10 @@ var app = {};
       img: app.destinationPath + 'img/'   // IMG
     };
 
+////////////////////////
+// File building
+////////////////////////
+
 // Build HTML files
 gulp.task('buildHTML', function() {
 
@@ -45,13 +52,13 @@ gulp.task('buildHTML', function() {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpJade())
                   .pipe(gulp.dest(app.paths.destination.html))
-                  .pipe(gulpGit.add())
-                  // .pipe(gulpGit.commit('HTML commit' + new Date()))
+                  .pipe(gulpGit.add()) // Add destination file
+                  .pipe(gulpGit.commit('HTML commit at'))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }))
-    .pipe(gulpGit.add())
-    .pipe(gulpGit.commit('HTML commit at ' + new Date().toString()));
+    .pipe(gulpGit.add()) // Add source file
+    .pipe(gulpGit.commit('Jade commit at'));
 });
 
 // Build CSS files
@@ -62,12 +69,12 @@ gulp.task('buildCSS', function() {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpSass({outputStyle:'compressed',sourceComments:'map'}))
                   .pipe(gulp.dest(app.paths.destination.css))
-                  .pipe(gulpGit.add())
+                  .pipe(gulpGit.add()) // Add destination file
                   // .pipe(gulpGit.commit('CSS commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }))
-    .pipe(gulpGit.add());
+    .pipe(gulpGit.add()); // Add source file
 });
 
 // Build JS files
@@ -79,12 +86,12 @@ gulp.task('buildJS', function() {
       return files.pipe(gulpConcat('app.min.js'))
                   .pipe(gulpUglify())
                   .pipe(gulp.dest(app.paths.destination.js))
-                  .pipe(gulpGit.add())
+                  .pipe(gulpGit.add()) // Add destination file
                   // .pipe(gulpGit.commit('JS commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }))
-    .pipe(gulpGit.add());
+    .pipe(gulpGit.add()); // Add source file
 });
 
 // Build IMG files
@@ -95,19 +102,20 @@ gulp.task('buildIMG', function () {
     .pipe(gulpWatch(function(files) {
       return files.pipe(gulpImagemin())
                   .pipe(gulp.dest(app.paths.destination.img))
-                  .pipe(gulpGit.add())
+                  .pipe(gulpGit.add()) // Add destination file
                   // .pipe(gulpGit.commit('IMG commit' + new Date()))
                   .pipe(gulpLivereload())
                   .on('error', gulpUtil.log);
     }))
-    .pipe(gulpGit.add());
+    .pipe(gulpGit.add()); // Add source file
 });
+
+////////////////////////
+// Build Directives
+////////////////////////
 
 // Build tasks ( w/ alias for rebuild )
 gulp.task('build', function() {
-  gulp.start('buildHTML', 'buildCSS', 'buildJS', 'buildIMG');
-});
-gulp.task('rebuild', function() {
   gulp.start('buildHTML', 'buildCSS', 'buildJS', 'buildIMG');
 });
 
@@ -117,17 +125,15 @@ gulp.task('server', function(next) {
 });
 
 gulp.task('addAndCommit', function() {
-  return gulp.src(app.sourcePath)
+  return gulp.src(app.sourcePath + '**/**.*')
              .pipe(gulpGit.add({args: '-a'}))
              .pipe(gulpGit.commit('build at ' + new Date().toString() ));
 });
 
-gulp.task('push', function(next) {
-  // gulpGit.push('origin', 'master')
-     // .end();  // .end() is required
-});
-
+////////////////////////
 // Watch files
+////////////////////////
+
 gulp.task('watch', ['server'], function() {
 
   // Watch for HTML CSS JS
@@ -141,11 +147,10 @@ gulp.task('watch', ['server'], function() {
     gulp.start('buildJS');
   });
 
-  gulpWatch({ glob: app.sourcePath }, function(){
-    gulp.start('addAndCommit');
-  });
+  // gulpWatch({ glob: app.sourcePath }, function(){
+  //   gulp.start('addAndCommit');
+  // });
   
-
 });
 
 // Default task - build first then watch files and start server
